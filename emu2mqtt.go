@@ -142,20 +142,17 @@ func scanSerial(s *serial.Port, m mqtt.Client) {
 
 	scanner := bufio.NewScanner(s)
 	split := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
-		if i := strings.Index(string(data), "</InstantaneousDemand>"); i >= 0 {
-			return i + 24, data[0 : i+22], nil
+		if i := strings.Index(string(data), "</InstantaneousDemand>\r\n"); i >= 0 {
+			return i + 24, data[0 : i+24], nil
 		}
-		if i := strings.Index(string(data), "</CurrentSummationDelivered>"); i >= 0 {
-			return i + 30, data[0 : i+28], nil
+		if i := strings.Index(string(data), "</CurrentSummationDelivered>\r\n"); i >= 0 {
+			return i + 30, data[0 : i+30], nil
 		}
-		if i := strings.Index(string(data), "</TimeCluster>"); i >= 0 {
-			return i + 16, data[0 : i+14], nil
+		if i := strings.Index(string(data), "</TimeCluster>\r\n"); i >= 0 {
+			return i + 16, data[0 : i+16], nil
 		}
 
-		if !atEOF {
-			return 0, nil, nil
-		}
-		return len(data), data, bufio.ErrFinalToken
+		return 0, nil, nil
 	}
 
 	scanner.Split(split)
