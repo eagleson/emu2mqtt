@@ -162,7 +162,8 @@ func scanSerial(s *serial.Port, m mqtt.Client) {
 	v := validator.New()
 
 	for scanner.Scan() {
-		if scanner.Text()[1] == 'I' {
+		switch scanner.Text()[1] {
+		case 'I':
 			xml.Unmarshal([]byte(scanner.Text()), &instantaneousDemand)
 			err := v.Struct(instantaneousDemand)
 			if err != nil {
@@ -183,8 +184,7 @@ func scanSerial(s *serial.Port, m mqtt.Client) {
 			}
 			demand = fmt.Sprintf("%v", int(float64(int32(i))*float64(mult)/float64(div)*1000))
 			publishPower(m, demand)
-			continue
-		} else if scanner.Text()[1] == 'C' {
+		case 'C':
 			xml.Unmarshal([]byte(scanner.Text()), &currentSummationDelivered)
 			err := v.Struct(currentSummationDelivered)
 			if err != nil {
@@ -210,7 +210,10 @@ func scanSerial(s *serial.Port, m mqtt.Client) {
 			delivered = fmt.Sprintf("%.3f", float64(int32(d))*float64(mult)/float64(div))
 			received = fmt.Sprintf("%.3f", float64(int32(r))*float64(mult)/float64(div))
 			publishEnergy(m, delivered, received)
-			continue
+		case 'T':
+			// ignored
+		default:
+			log.Fatal("Unexpected case")
 		}
 	}
 }
