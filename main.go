@@ -71,6 +71,11 @@ func connectMQTT() mqtt.Client {
 	opts.SetPassword(viper.GetString("MQTT_PASSWORD"))
 	opts.SetClientID("emu2mqtt")
 
+	opts.SetAutoReconnect(true)
+	opts.OnConnect = func(c mqtt.Client) {
+		setupMQTTDiscovery(c)
+	}
+
 	client := mqtt.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		log.Fatal(token.Error())
@@ -219,13 +224,10 @@ func scanSerial(s *serial.Port, m mqtt.Client) {
 }
 
 func main() {
-
 	loadConfiguration()
 
 	m := connectMQTT()
-	setupMQTTDiscovery(m)
 
 	s := connectSerial()
 	scanSerial(s, m)
-
 }
